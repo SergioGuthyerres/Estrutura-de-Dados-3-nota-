@@ -30,6 +30,28 @@ class Set {
     return Object.keys(this.items).length;
   }
 
+  sizeLegacy() {
+    let count = 0;
+    for(let key in this.items) {
+      if(this.items.hasOwnProperty(key)) {
+        count++
+      }
+    }
+    return count;
+  }
+  values() {
+    return Object.values(this.items);
+  }
+
+  valuesLegacy() {
+    let values = [];
+    for(let key in this.items) {
+      if(this.items.hasOwnProperty(key)) {
+        values.push(key);
+      }
+    }
+    return values;
+  }
 
 }
 
