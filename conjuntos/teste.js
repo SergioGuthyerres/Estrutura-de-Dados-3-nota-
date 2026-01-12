@@ -14,5 +14,23 @@ class Set {
     return false;
   }
 
-  //falta add metodos delete, clear, size e values
+  delete(element) {
+  if (this.has(element)) {
+    delete this.items[element];
+    return true;
+  }
+  return false;
 }
+
+  clear() {
+    this.items = {};
+  }
+
+  size() {
+    return Object.keys(this.items).length;
+  }
+
+
+}
+
+
