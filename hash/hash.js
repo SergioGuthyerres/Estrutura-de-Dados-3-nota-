@@ -7,7 +7,7 @@ function defaultToString(item) {
     return `${item}`;
   }
   // CORREÇÃO:
-  // Se for objeto, transformamos o conteúdo dele em uma string única
+  // Se for objeto, transformamos o conteúdo dele em uma string única para conseguir usar obj como chave
   // Ex: {id:1} vira '{"id":1}'
   return JSON.stringify(item);
 }
@@ -38,6 +38,7 @@ export default class HashTable {
     }
     return hash % 37;
   }
+  //implementaçao de sondagem linear com dj2b
   djb2HashCode(key) {
     const tableKey = this.toStrFn(key);
     let hash = 5381;
@@ -55,23 +56,67 @@ export default class HashTable {
   put(key, value) {
     if (key != null && value != null) {
       const position = this.hashCode(key);
-      this.table[position] = new ValuePair(key, value);
+      if (this.table[position] == null) {
+        this.table[position] = new ValuePair(key, value);
+      } else {
+        let index = position + 1;
+        while (this.table[index] != null) {
+          index++;
+        }
+        this.table[index] = new ValuePair(key, value);
+      }
       return true;
     }
     return false;
   }
   get(key) {
-    const valuePair = this.table[this.hashCode(key)];
-    return valuePair == null ? undefined : valuePair.value;
+    const position = this.hashCode(key);
+    if (this.table[position] != null) {
+      if (this.table[position].key === key) {
+        return this.table[position].value;
+      }
+      let index = position + 1;
+      while (this.table[index] != null && this.table[index].key !== key) {
+        index++;
+      }
+      if (this.table[index] != null && this.table[index].key === key) {
+        return this.table[index].value;
+      }
+    }
+    return undefined;
   }
   remove(key) {
-    const hash = this.hashCode(key);
-    const valuePair = this.table[hash];
-    if (valuePair != null) {
-      delete this.table[hash];
-      return true;
+    const position = this.hashCode(key);
+    if (this.table[position] != null) {
+      if (this.table[position].key === key) {
+        delete this.table[position];
+        this.verifyRemoveSideEffect(key, position);
+        return true;
+      }
+      let index = position + 1;
+      while (this.table[index] != null && this.table[index].key !== key) {
+        index++;
+      }
+      if (this.table[index] != null && this.table[index].key === key) {
+        delete this.table[index];
+        this.verifyRemoveSideEffect(key, index);
+        return true;
+      }
     }
     return false;
+  }
+  verifyRemoveSideEffect(key, removedPosition) {
+    const hash = this.hashCode(key);
+    let index = removedPosition + 1;
+    while (this.table[index] != null) {
+      const posHash = this.hashCode(this.table[index].key);
+      if (posHash <= hash || posHash <= removedPosition) {
+        this.table[removedPosition] = this.table[index];
+        delete this.table[index];
+        removedPosition = index;
+      }
+      index++;
+    }
   }
   isEmpty() {
     return this.size() === 0;
